@@ -36,66 +36,17 @@ namespace ImageMasking.Controllers
             return View();
         }
 
-        public unsafe ActionResult GetImage()
+        public ActionResult GetImage()
         {
             DateTime startTime = DateTime.UtcNow;
             string webRootPath = _hostingEnvironment.ContentRootPath;
+            string imagePath = (Path.Combine(webRootPath, "Images\\test.jpg"));
+            ImageProcessing.ImageProcessor processor = new ImageProcessing.ImageProcessor(imagePath);
             
-            using(Bitmap image =(Bitmap)Image.FromFile(Path.Combine(webRootPath, "Images\\test.jpg")))
+            using(Bitmap image = processor.GetProcessedImage())
             using(MemoryStream ms = new MemoryStream())
             {
-                int maskSize = 3;
-                int maskWidth =  (int)image.Width/maskSize ;
-                if(maskWidth%3>0)
-                    maskSize = (int)(image.Width-1)/maskSize ;
-
-                int maskHeight =  (int)image.Height/maskSize ;
-                if(maskHeight%3>0)
-                    maskHeight = (int)(image.Height-1)/maskSize ;
-
-                byte[] mask = new byte[maskHeight*maskWidth];
-                for(int i=0; i< mask.Length; i++)
-                {
-                    if(i%5 ==0)
-                     mask[i] =  1; 
-                     else
-                      mask[i] =  0; 
-                }    
-
-                var bitmapData = image.LockBits (
-                    new Rectangle (0, 0, image.Width, image.Height),
-                    ImageLockMode.ReadWrite, 
-                    image.PixelFormat
-                );
-
-                int pixelSize =3;
-                byte* current =(byte*)(void*)bitmapData.Scan0;
-                int nWidth =bitmapData.Width * pixelSize;
-                int nHeight = bitmapData.Height;
-
-                for (int y =0; y < maskHeight; y++)
-                {
-                    current = (byte*)(void*)bitmapData.Scan0 + image.Width*y*maskSize* pixelSize;
-                    for (int x =0; x <maskWidth;x++ )
-                    {
-                        if (x % pixelSize ==0|| x ==0)
-                        {
-                            if(mask[x*y]>0)
-                            {
-                                for(int i =0; i< maskSize*maskSize; i++)
-                                {
-                                     current[i] = 255;
-                                }
-                            }
-                        }
-                        current+=maskSize*pixelSize;
-                    }
-                }
-                
-                image.UnlockBits(bitmapData);
                 image.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-
-                _logger.LogInformation("Image processing time: {0} ms", (DateTime.UtcNow - startTime).TotalMilliseconds);
                 return File(ms.ToArray(), "image/jpg");
             }
         }
