@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ImageMasking.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,6 +27,23 @@ namespace ImageMasking
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
+            services.AddDbContext<DataContext>(options =>
+            options.UseNpgsql(Configuration.GetConnectionString("dbContext")));
+
+            services.Configure<CookiePolicyOptions>(options =>  
+            {   
+                options.CheckConsentNeeded = context => true;  
+                options.MinimumSameSitePolicy = SameSiteMode.None;  
+            });
+
+            
+
+            #region Repositories
+            services.AddTransient(typeof(IDbRepository<>), typeof(DbRepository<>));
+            services.AddTransient<IImageRepository, ImageRepository>();
+            services.AddTransient<IMaskRepository, MaskReposiotry>();
+            services.AddTransient<IPersonRepository, PersonRepository>();
+            #endregion   
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

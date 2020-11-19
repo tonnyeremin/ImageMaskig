@@ -8,3 +8,20 @@
 </div>
 
 <img src='@Url.Action("GetImage")' />
+
+<form  asp-area="" asp-controller="Home" asp-action="Buy">
+    <div class="form-group">
+    <label for="firstName">First Name</label>
+    <input type="text" class="form-control" id="firstName" name="firstName">
+  </div>
+    <div class="form-group">
+    <label for="secondName">Second Name</label>
+    <input type="text" class="form-control" id="secondName" name="secondName">
+  </div>
+  <div class="form-group">
+    <label for="exampleInputEmail1">Email address</label>
+    <input type="email" class="form-control" id="email" name="email" aria-describedby="emailHelp">
+    <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+  </div>
+  <button type="submit" class="btn btn-primary">Open</button>
+</form>

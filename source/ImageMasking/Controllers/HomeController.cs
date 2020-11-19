@@ -50,6 +50,11 @@ namespace ImageMasking.Controllers
                 return File(ms.ToArray(), "image/jpg");
             }
         }
+         [HttpPost()]
+        public ActionResult Buy([FromForm]string firstName, string secondName, string email)
+        {
+            return RedirectToAction("Index");
+        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

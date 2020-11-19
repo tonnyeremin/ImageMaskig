@@ -46,7 +46,7 @@ namespace ImageMasking.ImageProcessing
             {
                 byte[] mask = new byte[image.Width*image.Height];
                 for(int i =0; i<mask.Length; i++)
-                    mask[i] = 1;
+                    mask[i] =  0;
                 return  mask;
             }
         }
@@ -79,7 +79,7 @@ namespace ImageMasking.ImageProcessing
                     int maskColumn = maskRow*image.Width;
                     for (int x = 0; x < bitmapData.Width; x++)
                     {
-                            currentRow[pane] = mask[maskColumn]!=0 ? (byte)255 : currentRow[pane];
+                            currentRow[pane] = mask[maskColumn]!=0 ?  currentRow[pane] : (byte)255;
                             currentRow+=pixelSize;
                             maskColumn++;
                     }
