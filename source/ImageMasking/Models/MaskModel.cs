@@ -8,6 +8,6 @@ namespace ImageMasking.Models
         public int ImageId{get; set;}
         public int MaskHeight{get; set;}
         public int MaskWidth{get; set;}
-        public int[] MaskArray{get; set;}
+        public byte[] MaskArray{get; set;}
     }
 }

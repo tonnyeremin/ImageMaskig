@@ -1,26 +1,46 @@
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Linq;
+using ImageMasking.Data;
+using ImageMasking.Models;
 using Microsoft.Extensions.Logging;
 
 namespace ImageMasking.ImageProcessing
 {
     public class ImageProcessor
     {
-        private string _fileName;
+        private readonly string _fileName;
+        private readonly IUnitOfWork _unit;
 
-        public ImageProcessor(string fileName)
+        public ImageProcessor(string fileName, IUnitOfWork unit)
         {
              _fileName = fileName;
+             _unit = unit;
         }
         
-        public  Bitmap GetProcessedImage()
+        public Bitmap GetProcessedImage()
         {
             Bitmap image =(Bitmap)Image.FromFile( _fileName);
             byte[] mask = GetMask(_fileName);
             ProcessImage(image,mask);
         
             return image;
+        }
+
+        public void EditMask(int elementSize, int userId)
+        {
+            var image = _unit.ImageRepository.Find(i=>i.Path == _fileName).FirstOrDefault();
+            if(image == null)
+               throw new Exception($"Image not found: {_fileName}");
+
+            var mask = _unit.MaskRepository.Find(m=>m.ImageId == image.Id).FirstOrDefault();
+            if(mask == null)
+                throw new Exception($"Mask for image not found: {_fileName}");
+
+
+            _unit.MaskRepository.Update(mask);
+            _unit.Commit();      
         }
 
         private byte[] GetMask(string filePath)
@@ -37,23 +57,52 @@ namespace ImageMasking.ImageProcessing
 
         private bool IsMaskExists(string filePath)
         {
-            return false;
+            var image = _unit.ImageRepository.Find(i=>i.Path == filePath).FirstOrDefault();
+            if(image == null)
+                return false;
+            var mask = _unit.MaskRepository.Find(m=>m.ImageId == image.Id).FirstOrDefault();
+
+            return mask != null;
         }
 
         private byte[] CreateNewMask(string filePath)
         {
+            var imageModel = _unit.ImageRepository.Find(i=>i.Path == filePath).FirstOrDefault();
+            if(imageModel  == null)
+            {
+                imageModel  = new ImageModel(){Path = filePath};
+                _unit.ImageRepository.Add(imageModel);
+            }
+
             using(Bitmap image =(Bitmap)Image.FromFile(filePath))
             {
                 byte[] mask = new byte[image.Width*image.Height];
                 for(int i =0; i<mask.Length; i++)
                     mask[i] =  0;
-                return  mask;
+
+                MaskModel maskModel = new MaskModel(){ImageId = imageModel.Id, MaskArray = mask, MaskHeight = image.Height, MaskWidth = image.Width};
+                _unit.MaskRepository.Add(maskModel);
+                _unit.Commit();    
+
+                return mask;
             }
         }
 
         private byte[] LoadExistingMask(string filePath)
         {
-             return new byte[0];
+            var image = _unit.ImageRepository.Find(i=>i.Path == filePath).FirstOrDefault();
+            if(image == null)
+               throw new Exception($"Image not found: {filePath}");
+
+            var mask = _unit.MaskRepository.Find(m=>m.ImageId == image.Id).FirstOrDefault();
+            if(mask == null)
+                throw new Exception($"Mask for image not found: {filePath}");
+
+            byte[] maskArray = new byte[mask.MaskHeight*mask.MaskWidth];
+            for(int i =0 ; i< maskArray.Length; i++)
+                maskArray[i] =(byte)(mask.MaskArray[i]>0? 1:0);
+
+            return maskArray;
         }
 
         private unsafe void ProcessImage(Bitmap image, byte[] mask)
