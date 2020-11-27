@@ -14,6 +14,6 @@ namespace ImageMasking.Data
         public DbSet<MaskModel> Masks{get; set;}
         public DbSet<PersonModel> Persons{get; set;}
 
-
+      
     }
 }               

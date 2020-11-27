@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
@@ -38,7 +39,35 @@ namespace ImageMasking.ImageProcessing
             if(mask == null)
                 throw new Exception($"Mask for image not found: {_fileName}");
 
+            List<int> filled = new List<int>();
+            int indexCount =0;
+            for(int i=0; i< mask.MaskHeight; i+=elementSize)
+            {
+               for(int j=0; j<mask.MaskWidth; j+= elementSize)
+               {
+                   int index = i*mask.MaskWidth +j;
+                   if(mask.MaskArray[index]>0)
+                        filled.Add(index);
+                    indexCount = index;
+               } 
+            }
 
+            Random rnd = new Random();
+            int newIndex =0;
+            while(filled.Any(i=>i == newIndex))
+                newIndex =  rnd.Next(indexCount);
+
+            for(int i =0;i<elementSize; i++)
+            {
+                for(int j=0;j<elementSize; j++)
+                {
+                    int maskIdex = newIndex + i*mask.MaskWidth + j;
+                    mask.MaskArray[maskIdex] = 1;
+                }
+            }    
+
+            var person = _unit.PersonRepository.GetByIt(userId);
+            _unit.ImageRepository.Update(image);
             _unit.MaskRepository.Update(mask);
             _unit.Commit();      
         }
@@ -72,6 +101,7 @@ namespace ImageMasking.ImageProcessing
             {
                 imageModel  = new ImageModel(){Path = filePath};
                 _unit.ImageRepository.Add(imageModel);
+                _unit.Commit();  
             }
 
             using(Bitmap image =(Bitmap)Image.FromFile(filePath))

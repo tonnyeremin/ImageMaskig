@@ -17,7 +17,7 @@ namespace ImageMasking.Controllers
 {
     public class HomeController : Controller
     {
-        private const int MASK_SIZE = 3;
+        private const int MASK_SIZE = 100;
         private readonly ILogger<HomeController> _logger;
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly IUnitOfWork _unit;
@@ -63,6 +63,8 @@ namespace ImageMasking.Controllers
             if(person == null)
             {
                 person = new PersonModel(){FirstName = firstName, SecondName = secondName, Email = email};
+                
+                _unit.PersonRepository.Add(person);
                 _unit.Commit();
             }
 

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace ImageMasking.Models
 {
     public class PersonModel

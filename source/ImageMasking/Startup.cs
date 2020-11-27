@@ -43,6 +43,7 @@ namespace ImageMasking
             services.AddTransient<IImageRepository, ImageRepository>();
             services.AddTransient<IMaskRepository, MaskReposiotry>();
             services.AddTransient<IPersonRepository, PersonRepository>();
+            services.AddTransient<IUnitOfWork, UnitOfWorkImp>();
             #endregion   
         }
 
@@ -52,6 +53,11 @@ namespace ImageMasking
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                 using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+                {
+                        var context = serviceScope.ServiceProvider.GetRequiredService<DataContext>();
+                        context.Database.EnsureCreated();
+                }
             }
             else
             {
