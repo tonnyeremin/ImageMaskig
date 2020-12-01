@@ -39,10 +39,12 @@ namespace ImageMasking
             
 
             #region Repositories
+            services.AddSingleton<IConfiguration>(Configuration);
             services.AddTransient(typeof(IDbRepository<>), typeof(DbRepository<>));
             services.AddTransient<IImageRepository, ImageRepository>();
             services.AddTransient<IMaskRepository, MaskReposiotry>();
             services.AddTransient<IPersonRepository, PersonRepository>();
+            services.AddTransient<IPersonOrderRepository, PersonOrderRepository>();
             services.AddTransient<IUnitOfWork, UnitOfWorkImp>();
             #endregion   
         }

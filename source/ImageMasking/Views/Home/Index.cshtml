@@ -9,6 +9,13 @@
 
 <img src='@Url.Action("GetImage")' />
 
+<ul class="list-inline">
+  @foreach (var item in Model)
+  {
+      <li class="list-inline-item">@item</li>
+  }
+</ul>
+
 <form  asp-area="" asp-controller="Home" asp-action="Buy">
     <div class="form-group">
     <label for="firstName">First Name</label>

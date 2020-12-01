@@ -13,6 +13,7 @@ namespace ImageMasking.Data
         public DbSet<ImageModel> Images{get; set;}
         public DbSet<MaskModel> Masks{get; set;}
         public DbSet<PersonModel> Persons{get; set;}
+        public DbSet<PersonOrdersModel> PersonsOrders{get; set;}
 
       
     }

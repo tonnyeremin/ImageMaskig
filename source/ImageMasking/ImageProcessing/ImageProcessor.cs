@@ -13,23 +13,25 @@ namespace ImageMasking.ImageProcessing
     {
         private readonly string _fileName;
         private readonly IUnitOfWork _unit;
+        private readonly int _maskSize;
 
-        public ImageProcessor(string fileName, IUnitOfWork unit)
+        public ImageProcessor(string fileName, int maskSize, IUnitOfWork unit)
         {
              _fileName = fileName;
              _unit = unit;
+             _maskSize = maskSize;
         }
         
         public Bitmap GetProcessedImage()
         {
-            Bitmap image =(Bitmap)Image.FromFile( _fileName);
+            Bitmap image =(Bitmap)Image.FromFile(_fileName);
             byte[] mask = GetMask(_fileName);
             ProcessImage(image,mask);
         
             return image;
         }
 
-        public void EditMask(int elementSize, int userId)
+        public void EditMask(int userId)
         {
             var image = _unit.ImageRepository.Find(i=>i.Path == _fileName).FirstOrDefault();
             if(image == null)
@@ -40,26 +42,23 @@ namespace ImageMasking.ImageProcessing
                 throw new Exception($"Mask for image not found: {_fileName}");
 
             List<int> filled = new List<int>();
-            int indexCount =0;
-            for(int i=0; i< mask.MaskHeight; i+=elementSize)
+            int margin = _maskSize/2;
+            for(int i=margin; i< mask.MaskHeight-margin; i+=_maskSize)
             {
-               for(int j=0; j<mask.MaskWidth; j+= elementSize)
+               for(int j=margin; j<mask.MaskWidth-margin; j+=_maskSize)
                {
-                   int index = i*mask.MaskWidth +j;
-                   if(mask.MaskArray[index]>0)
-                        filled.Add(index);
-                    indexCount = index;
+                   int index = i*mask.MaskWidth + j;
+                   if(mask.MaskArray[index]==0)
+                        filled.Add(index); 
+
                } 
             }
 
             Random rnd = new Random();
-            int newIndex =0;
-            while(filled.Any(i=>i == newIndex))
-                newIndex =  rnd.Next(indexCount);
-
-            for(int i =0;i<elementSize; i++)
+            int newIndex =filled[rnd.Next(filled.Count)];
+            for(int i =0;i<_maskSize; i++)
             {
-                for(int j=0;j<elementSize; j++)
+                for(int j=0;j<_maskSize; j++)
                 {
                     int maskIdex = newIndex + i*mask.MaskWidth + j;
                     mask.MaskArray[maskIdex] = 1;
@@ -107,8 +106,28 @@ namespace ImageMasking.ImageProcessing
             using(Bitmap image =(Bitmap)Image.FromFile(filePath))
             {
                 byte[] mask = new byte[image.Width*image.Height];
+                int padding = _maskSize/2;
+
                 for(int i =0; i<mask.Length; i++)
                     mask[i] =  0;
+
+                for (int i=0;i<padding;i++)
+                {
+                    for(int j=0; j< image.Width; j++)
+                    {
+                        mask[i*image.Width+j] = 1;
+                        mask[(image.Height-1 - i)*image.Width+j] = 1;
+                    }
+                }
+
+                for(int i=padding; i<image.Height-padding; i++)
+                {
+                    for(int j =0; j<padding; j++)
+                    {
+                        mask[i*image.Width+ j] = 1;
+                        mask[i*image.Width+ (image.Width-j-1)] = 1;
+                    }
+                }  
 
                 MaskModel maskModel = new MaskModel(){ImageId = imageModel.Id, MaskArray = mask, MaskHeight = image.Height, MaskWidth = image.Width};
                 _unit.MaskRepository.Add(maskModel);

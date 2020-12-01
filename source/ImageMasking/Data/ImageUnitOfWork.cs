@@ -7,6 +7,8 @@ namespace ImageMasking.Data
         IMaskRepository MaskRepository{get;}
         IPersonRepository PersonRepository{get;}
 
+        IPersonOrderRepository PersonOrderRepository{get;}
+
         void Commit();
 
     }
@@ -50,6 +52,18 @@ namespace ImageMasking.Data
                     _personRepository = new PersonRepository(_dataContext);
 
                 return _personRepository;
+            }
+        }
+        private IPersonOrderRepository _personOrdersRepository;
+
+        public IPersonOrderRepository PersonOrderRepository 
+        {
+            get
+            {
+                if(_personOrdersRepository == null)
+                    _personOrdersRepository = new PersonOrderRepository(_dataContext);
+
+                return _personOrdersRepository;
             }
         }
 
